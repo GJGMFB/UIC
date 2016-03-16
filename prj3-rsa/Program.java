@@ -160,7 +160,7 @@ public class Program extends JFrame implements ActionListener {
             }
 
             int blockSize = Integer.parseInt(txtBlockSize.getText()); // Store the block size
-            blockedFilePath = rsa.unblock(messageFile, "unblockedMessage.txt");
+            blockedFilePath = rsa.unblock(messageFile, "unblockedMessage.txt", blockSize);
             JOptionPane.showMessageDialog(Program.this, "<html>Successfully blocked message. Path of output file:<br>" + blockedFilePath + "</html>");
         }
 

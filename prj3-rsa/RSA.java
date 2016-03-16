@@ -71,7 +71,7 @@ public class RSA {
             PrintWriter output = new PrintWriter(new FileWriter(publicKey));
 
             // Write e and n to file
-            output.print("<rsakey><evalue>" + e.toString() + "</evalue><nvalue>" + n.toString() + "</nvalue></rsakey>");
+            output.print("<rsakey><evalue>" + e.bigEndianToString() + "</evalue><nvalue>" + n.bigEndianToString() + "</nvalue></rsakey>");
 
             output.close();
 
@@ -97,7 +97,7 @@ public class RSA {
             PrintWriter output = new PrintWriter(new FileWriter(privateKey));
 
             // Write e and n to file
-            output.print("<rsakey><dvalue>" + d.toString() + "</dvalue><nvalue>" + n.toString() + "</nvalue></rsakey>");
+            output.print("<rsakey><dvalue>" + d.bigEndianToString() + "</dvalue><nvalue>" + n.bigEndianToString() + "</nvalue></rsakey>");
 
             output.close();
 
@@ -119,6 +119,7 @@ public class RSA {
     public String block(File fileIn, String fileOut, int blockSize) {
         int c;
         String x = "";
+        String buffer = "";
         long len;
         long numBlocks;
         String path = null;
@@ -134,6 +135,8 @@ public class RSA {
             numBlocks = len / blockSize;
 
             for (long i = 0; i < numBlocks + 1; i++) {
+                buffer = ""; // Clear string each line
+
                 for (int j = 0; j < blockSize; j++) {
                     c = fr.read();
 
@@ -166,9 +169,11 @@ public class RSA {
                         x = "0" + x;
                     }
 
-                    //outStr = outStr + x;
-                    output.print(x);
+                    buffer = x + buffer;
+                    //output.print(x);
                 }
+
+                output.print(buffer); // Print line of converted text
 
                 // If on last iteration
                 if (i < numBlocks) {
@@ -200,9 +205,11 @@ public class RSA {
      * @param fileOut Output file
      * @return Path of output file
      */
-    public String unblock(File fileIn, String fileOut) {
+    public String unblock(File fileIn, String fileOut, int blockSize) {
         String line;
         String path = null;
+        String buffer = "";
+        char c;
 
         try {
             File out = new File(".", fileOut);
@@ -214,6 +221,14 @@ public class RSA {
             while (line != null) {
                 int len = line.length();
                 StringBuilder s;
+
+                // Place back leading zeros
+                if (len != blockSize*2) {
+                    // Add a leading zero
+                    line = "0" + line;
+                }
+
+                buffer = ""; // Clear buffer for each line
 
                 for (int i = 0; i < len; i += 2) {
                     s = new StringBuilder(line);
@@ -239,9 +254,12 @@ public class RSA {
                     }
 
                     // Rest of ASCII chars
-                    output.print(Character.toChars(temp + 27));
+                    c = (char) (temp + 27);
+                    buffer = "" + c + buffer;
+                    //output.print(Character.toChars(temp + 27));
                 }
 
+                output.print(buffer);
                 line = in.readLine(); // Read next line
             }
 
@@ -274,13 +292,13 @@ public class RSA {
             dom.getDocumentElement().normalize();
 
             // Check if evalue exists
-            if (dom.getElementsByTagName("evalue") != null) {
+            if (dom.getElementsByTagName("evalue").item(0) != null) {
                 e = new HugeInt(dom.getElementsByTagName("evalue").item(0).getTextContent());
                 encrypt = true;
             }
 
             // Check if dvalue exists
-            if (dom.getElementsByTagName("dvalue") != null) {
+            if (dom.getElementsByTagName("dvalue").item(0) != null) {
                 d = new HugeInt(dom.getElementsByTagName("dvalue").item(0).getTextContent());
                 decrypt = true;
             }
@@ -327,9 +345,11 @@ public class RSA {
 
             // For each line of the blocked file
             while (line != null) {
-                output.println(encrypt(new HugeInt(line)).toString()); // Write a line to the output file
+                output.println(encrypt(new HugeInt(line)).bigEndianToString()); // Write a line to the output file
+                line = in.readLine(); // Read next line
             }
 
+            output.close();
             in.close();
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -344,7 +364,7 @@ public class RSA {
      * @return The encrypted message
      */
     private HugeInt encrypt(HugeInt message) {
-        return HugeInt.modPow(message, e, n);
+        return HugeInt.modPow2(message, e, n);
     }
 
     /**
@@ -367,9 +387,11 @@ public class RSA {
 
             // For each line of the blocked file
             while (line != null) {
-                output.println(decrypt(new HugeInt(line)).toString()); // Write a line to the output file
+                output.println(decrypt(new HugeInt(line)).bigEndianToString()); // Write a line to the output file
+                line = in.readLine(); // Read next line
             }
 
+            output.close();
             in.close();
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -384,7 +406,7 @@ public class RSA {
      * @return The original message
      */
     private HugeInt decrypt(HugeInt cipher) {
-        return HugeInt.modPow(cipher, d, n);
+        return HugeInt.modPow2(cipher, d, n);
     }
 
     /**
