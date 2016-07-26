@@ -1,1 +1,2 @@
-# leancu2
+# UIC
+This repository contains programs and projects created while attending University of Illinois, Chicago. It is not an exhaustive collection of all programs, just a selection of programs written towards the end of my attendance.
