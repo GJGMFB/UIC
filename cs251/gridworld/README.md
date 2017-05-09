@@ -5,7 +5,7 @@ The world is created given a world size, initial population, and a flag specifyi
 
 A handfull of abstract data types exist that must adhere to certain runtime requirements. The code has a description of the runtimes; most are constant time if possible.
 
-A design document on [this GitHub](/design-document.docx) shows the runtimes, algorithms, and reasoning behind the code.
+A design document on [this GitHub](/cs251/gridworld/design-document.docx) shows the runtimes, algorithms, and reasoning behind the code.
 
 ### Language
 - C
