@@ -1,0 +1,1 @@
+Place the `/data` folder in the same location as the program executable after building. Or you can keep it in the `/bin` folder with your Debug or Release build.
